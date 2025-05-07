@@ -1,4 +1,4 @@
-package com.example.teamproject2;
+package com.example.teamproject2.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
