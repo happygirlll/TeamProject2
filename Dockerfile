@@ -1,48 +1,32 @@
-name: massai mara park 01 dockerfile build
+#빌드 단계,
+FROM openjdk:17-jdk-slim AS build
 
-on:
-  workflow_dispatch
+WORKDIR /app
 
-jobs:
-  mmpark01_dockerfile_build:
-    runs-on: ubuntu-22.04
+#gradle wrapper 파일 복사,
+COPY gradlew .
+COPY gradle ./gradle
+COPY build.gradle settings.gradle ./
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        
-        
-      - name: setup docker buildx
-        uses: docker/setup-buildx-action@v3
+#의존성 캐시,
+RUN ./gradlew dependencies --no-daemon
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false
-          load: true
-          tags: massai_mara:v1
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          
-      - name: run docker container
-        run: |
-          docker run -d --name mmpark01 -p 8080:8080 massai_mara:v1
-          sleep 20
-          
-          docker ps
-          docker logs  mmpark01
+#소스 코드 복사 및 빌드,
+COPY src ./src
+RUN ./gradlew build --no-daemon -x test
+
+#실행 단계,
+FROM openjdk:17-jdk-slim
+
+WORKDIR /app
+
+COPY --from=build /app/build/libs/*.jar app.jar
+
+ENV JAVA_OPTS="-Xms512m -Xmx512m"
+ENV SERVER_PORT=8080
+
+EXPOSE 8080
 
 
-      - name: run automated test #1
-        run: |
-          curl  http://localhost:8080   ||   exit  1   
 
-      - name: run automated test #2
-        run: |
-          curl  http://localhost:8080/images   ||   exit  1   
-          
-      - name: run automated test #3
-        run: |
-          curl  http://localhost:8080/animal   ||   exit  1     
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]
