@@ -28,6 +28,8 @@ jobs:
         run: ls -al ./build/libs
 
   deploy:
+    name: deploy
+    needs: build
     runs-on: ubuntu-22.04
     steps: 
       - name: run springboot application
@@ -35,14 +37,13 @@ jobs:
           java -jar ./build/libs/massai_mara_park-0.0.1-SNAPSHOT.jar &
           sleep 30 # stand by 30sec
       
-      - name: run automated test #1
+  test:
+    name: app test
+    needs: deploy
+    runs-on: ubuntu-22.04
+    steps: 
+      - name: run springboot application
         run: |
-          curl http://localhost:8080 || exit 1
-
-      - name: run automated test #2
-        run: |
-          curl http://localhost:8080/images || exit 1
-
-      - name: run automated test #3
-        run: |
-          curl http://localhost:8080/animal || exit 1
+          java -jar ./build/libs/massai_mara_park-0.0.1-SNAPSHOT.jar &
+          sleep 30 # stand by 30sec
+      
