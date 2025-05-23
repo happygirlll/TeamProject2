@@ -1,0 +1,23 @@
+name: massai mara park 01 compose dockerhub multiplejobs
+
+on:
+  workflow_dispatch
+
+env:
+  DOCKER_USERNAME: siestageek
+  IMAGE_NAME: massai_mara
+  IMAGE_TAG : v${{github.run_number}}
+
+jobs:
+  build_image:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+    
+      - name: setup docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: 
